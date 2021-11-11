@@ -1,9 +1,10 @@
-const express = require('express');
+const { Router } = require('express');
+const { check } = require('express-validator');
 
 const snapsController = require('../controllers/snaps-controllers');
 
 // CREATE A ROUTER OBJECT
-const router = express.Router();
+const router = Router();
 
 // ROUTE: .../:sid NOTE Get a specific snap by snap id (sid)
 router.get('/:sid', snapsController.getSnapBySnapId);
@@ -12,10 +13,22 @@ router.get('/:sid', snapsController.getSnapBySnapId);
 router.get('/user/:uid', snapsController.getSnapsByUserId);
 
 // ROUTE: .../ NOTE Create a new snap
-router.post('/', snapsController.createSnap);
+router.post(
+  '/',
+  [
+    check('title').not().isEmpty(),
+    check('description').isLength({ min: 5 }),
+    check('address').not().isEmpty(),
+  ],
+  snapsController.createSnap
+);
 
 // ROUTE: .../:sid NOTE Update an existing snap
-router.patch('/:sid', snapsController.updateSnap);
+router.patch(
+  '/:sid',
+  [check('title').not().isEmpty(), check('description').isLength({ min: 5 })],
+  snapsController.updateSnap
+);
 
 // ROUTE: .../:sid NOTE Delete an existing snap
 router.delete('/:sid', snapsController.deleteSnap);

@@ -1,6 +1,7 @@
 const express = require('express');
 
 const snapsRoutes = require('./routes/snaps-routes');
+const usersRoutes = require('./routes/users-routes');
 
 // CREATE AN EXPRESS APPLICATION
 const app = express();
@@ -11,6 +12,7 @@ app.use(express.json());
 
 // 2) ROUTES MIDDLEWARE
 app.use('/api/snaps', snapsRoutes);
+app.use('/api/users', usersRoutes);
 
 // 3) ERROR MIDDLEWARE
 app.use((error, req, res, next) => {

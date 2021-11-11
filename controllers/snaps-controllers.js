@@ -1,6 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
+const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
+const getCoordsForAddress = require('../util/location');
 
 let DUMMY_SNAPS = [
   {
@@ -54,7 +56,7 @@ const getSnapBySnapId = (req, res, next) => {
       new HttpError('Could not find the snap for the provided id.', 404)
     );
   }
-  res.json({ snap });
+  res.status(200).json({ snap });
 };
 
 const getSnapsByUserId = (req, res, next) => {
@@ -65,29 +67,58 @@ const getSnapsByUserId = (req, res, next) => {
       new HttpError('Could not find snaps for the provided user id.', 404)
     );
   }
-  res.json({ snaps });
+  res.status(200).json({ snaps });
 };
 
-const createSnap = (req, res, next) => {
-  console.log(req.body);
-  const { title, description, imageUrl, address, location, creator } = req.body;
+const createSnap = async (req, res, next) => {
+  // VALIDATING INPUTS
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(
+      new HttpError('Invalid inputs. Please enter correct information.', 422)
+    );
+  }
+
+  const { title, description, imageUrl, address, creator } = req.body;
+
+  let coordinates;
+  try {
+    coordinates = await getCoordsForAddress(address);
+  } catch (error) {
+    return next(error);
+  }
+
   const createdSnap = {
     id: uuidv4(),
     title,
     description,
     imageUrl,
     address,
-    location,
+    location: coordinates,
     creator,
   };
   DUMMY_SNAPS.push(createdSnap);
-  res.status(201).json({ snap: createSnap });
+  res.status(201).json({ snap: createdSnap });
 };
 
 const updateSnap = (req, res, next) => {
+  // VALIDATING INPUTS
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(
+      new HttpError('Invalid inputs. Please enter correct information.', 422)
+    );
+  }
+
   const { title, description } = req.body;
   const snapId = req.params.sid;
-  // MAKE A COPY
+
+  if (!DUMMY_SNAPS.find((snap) => snap.id === snapId)) {
+    return next(new HttpError('Could not find the snap.', 404));
+  }
+
   const snap = { ...DUMMY_SNAPS.find((snap) => snap.id === snapId) };
   const snapIndex = DUMMY_SNAPS.findIndex((snap) => snap.id === snapId);
   snap.title = title;
@@ -100,6 +131,10 @@ const updateSnap = (req, res, next) => {
 
 const deleteSnap = (req, res, next) => {
   const snapId = req.params.sid;
+
+  if (!DUMMY_SNAPS.find((snap) => snap.id !== snapId)) {
+    return next(new HttpError('Could not find the snap.', 404));
+  }
 
   DUMMY_SNAPS = DUMMY_SNAPS.filter((snap) => snap.id !== snapId);
 
