@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
 const getCoordsForAddress = require('../util/location');
+const Snap = require('../models/snap');
 
 let DUMMY_SNAPS = [
   {
@@ -19,20 +20,7 @@ let DUMMY_SNAPS = [
     },
     creator: 'u1',
   },
-  {
-    id: 's2',
-    title: 'London Bridge',
-    description:
-      'A monument to modernism, the unique architecture of the space, with its spiral ramp riding to a domed skylight, continues to thrill visitors and provide a unique forum for the presentation of contemporary art.',
-    imageUrl:
-      'https://images.unsplash.com/photo-1522092372459-dff01028d904?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80',
-    address: '1071 5th Ave, London',
-    location: {
-      lat: 40.7829796,
-      lng: -73.9611593,
-    },
-    creator: 'u1',
-  },
+  ,
   {
     id: 's3',
     title: 'Empire State Building',
@@ -48,28 +36,8 @@ let DUMMY_SNAPS = [
   },
 ];
 
-const getSnapBySnapId = (req, res, next) => {
-  const snapId = req.params.sid;
-  const snap = DUMMY_SNAPS.find((snap) => snap.id === snapId);
-  if (!snap) {
-    return next(
-      new HttpError('Could not find the snap for the provided id.', 404)
-    );
-  }
-  res.status(200).json({ snap });
-};
-
-const getSnapsByUserId = (req, res, next) => {
-  const userId = req.params.uid;
-  const snaps = DUMMY_SNAPS.filter((snap) => snap.creator === userId);
-  if (!snaps || snaps.length === 0) {
-    return next(
-      new HttpError('Could not find snaps for the provided user id.', 404)
-    );
-  }
-  res.status(200).json({ snaps });
-};
-
+// CRUD
+// 1) CREATE
 const createSnap = async (req, res, next) => {
   // VALIDATING INPUTS
   const errors = validationResult(req);
@@ -89,23 +57,82 @@ const createSnap = async (req, res, next) => {
     return next(error);
   }
 
-  const createdSnap = {
-    id: uuidv4(),
+  // CREATE NEW SNAP DOCUMENT
+  const createdSnap = new Snap({
     title,
     description,
     imageUrl,
     address,
     location: coordinates,
     creator,
-  };
-  DUMMY_SNAPS.push(createdSnap);
+  });
+  // SAVE NEW SNAP DOCUMENT
+  try {
+    await createdSnap.save();
+  } catch {
+    const error = new HttpError('Creating snap failed, please try again.', 500);
+    return next(error);
+  }
+
   res.status(201).json({ snap: createdSnap });
 };
 
-const updateSnap = (req, res, next) => {
+// 2) READ
+const getSnapBySnapId = async (req, res, next) => {
+  const snapId = req.params.sid;
+
+  let snap;
+  try {
+    snap = await Snap.findById(snapId);
+  } catch {
+    const error = new HttpError(
+      'Something went wrong, could not find a snap.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!snap) {
+    return next(
+      new HttpError('Could not find the snap for the provided id.', 404)
+    );
+  }
+
+  // NOTE toObject(): Converts this document into a plain-old JavaScript object (POJO).
+  res.status(200).json({ snap: snap.toObject({ getters: true }) });
+};
+
+const getSnapsByUserId = async (req, res, next) => {
+  const userId = req.params.uid;
+
+  let snaps;
+  try {
+    snaps = await Snap.find({ creator: userId });
+  } catch {
+    const error = new HttpError(
+      'Something went wrong, could not find snaps for this user.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!snaps || snaps.length === 0) {
+    return next(
+      new HttpError('Could not find snaps for the provided user id.', 404)
+    );
+  }
+
+  res
+    .status(200)
+    .json({ snaps: snaps.map((snap) => snap.toObject({ getters: true })) });
+};
+
+// 3) UPDATE
+const updateSnap = async (req, res, next) => {
   // VALIDATING INPUTS
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    // FIXME Delete
     console.log(errors);
     return next(
       new HttpError('Invalid inputs. Please enter correct information.', 422)
@@ -115,34 +142,71 @@ const updateSnap = (req, res, next) => {
   const { title, description } = req.body;
   const snapId = req.params.sid;
 
-  if (!DUMMY_SNAPS.find((snap) => snap.id === snapId)) {
+  let snap;
+  try {
+    snap = await Snap.findById(snapId);
+  } catch {
+    const error = new HttpError(
+      'Something went wrong, could not update snap',
+      500
+    );
+    return next(error);
+  }
+
+  if (!snap) {
     return next(new HttpError('Could not find the snap.', 404));
   }
 
-  const snap = { ...DUMMY_SNAPS.find((snap) => snap.id === snapId) };
-  const snapIndex = DUMMY_SNAPS.findIndex((snap) => snap.id === snapId);
   snap.title = title;
   snap.description = description;
 
-  DUMMY_SNAPS[snapIndex] = snap;
+  try {
+    await snap.save();
+  } catch {
+    const error = new HttpError(
+      'Something went wrong, could not update snap',
+      500
+    );
+    return next(error);
+  }
 
-  res.status(200).json({ snap });
+  res.status(200).json({ snap: snap.toObject({ getters: true }) });
 };
 
-const deleteSnap = (req, res, next) => {
+// 4) DELETE
+const deleteSnap = async (req, res, next) => {
   const snapId = req.params.sid;
 
-  if (!DUMMY_SNAPS.find((snap) => snap.id !== snapId)) {
+  let snap;
+  try {
+    snap = await Snap.findById(snapId);
+  } catch {
+    const error = new HttpError(
+      'Something went wrong, could not delete snap',
+      500
+    );
+    return next(error);
+  }
+
+  if (!snap) {
     return next(new HttpError('Could not find the snap.', 404));
   }
 
-  DUMMY_SNAPS = DUMMY_SNAPS.filter((snap) => snap.id !== snapId);
+  try {
+    await snap.remove();
+  } catch {
+    const error = new HttpError(
+      'Something went wrong, could not delete snap',
+      500
+    );
+    return next(error);
+  }
 
   res.status(200).json({ message: 'You have successfully deleted the snap.' });
 };
 
+exports.createSnap = createSnap;
 exports.getSnapBySnapId = getSnapBySnapId;
 exports.getSnapsByUserId = getSnapsByUserId;
-exports.createSnap = createSnap;
 exports.updateSnap = updateSnap;
 exports.deleteSnap = deleteSnap;

@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 
 const snapsRoutes = require('./routes/snaps-routes');
 const usersRoutes = require('./routes/users-routes');
@@ -25,7 +26,15 @@ app.use((error, req, res, next) => {
     .json({ message: error.message || 'An unknown error occurred!' });
 });
 
-// LISTEN TO PORT
-app.listen(8000, () => {
-  console.log('Server has been running successfully on port 8000.');
-});
+// CONNECT TO DATABASE
+mongoose
+  .connect(
+    'mongodb+srv://howie:***REMOVED***@cluster0.jlpms.mongodb.net/snaps?retryWrites=true&w=majority'
+  )
+  .then(
+    // LISTEN TO PORT
+    app.listen(8000, () => {
+      console.log('Server has been running successfully on port 8000.');
+    })
+  )
+  .catch((error) => console.log(error));
