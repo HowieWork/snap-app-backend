@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
+const User = require('../models/user');
 
 let DUMMY_USERS = [
   {
@@ -46,11 +47,25 @@ let DUMMY_USERS = [
   },
 ];
 
-const getUsers = (req, res, next) => {
-  res.status(200).json({ users: DUMMY_USERS });
+const getUsers = async (req, res, next) => {
+  let users;
+  try {
+    users = await User.find({}, '-password');
+    //ALTERNATIVE: const users = User.find({}, 'email name');
+  } catch {
+    const error = new HttpError(
+      'Fetching users failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  res.status(200).json({
+    users: users.map((user) => user.toObject({ getters: true })),
+  });
 };
 
-const signUp = (req, res, next) => {
+const signUp = async (req, res, next) => {
   // VALIDATING INPUTS
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -59,39 +74,69 @@ const signUp = (req, res, next) => {
 
   const { name, motto, email, password, image } = req.body;
 
-  const hasUser = DUMMY_USERS.find((user) => user.email === email);
-  if (hasUser) {
-    return next(
-      new HttpError('An account associted with this email already exists.', 422)
+  let existingUser;
+  try {
+    existingUser = await User.findOne({ email: email });
+  } catch {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
     );
+    return next(error);
   }
 
-  const newUser = {
-    id: uuidv4(),
+  if (existingUser) {
+    const error = new HttpError(
+      'User exists already, plese login instead.',
+      422
+    );
+    return next(error);
+  }
+
+  const newUser = new User({
     name,
-    motto,
     email,
     password,
+    motto,
     image,
-    snapCount: 0,
-  };
-  DUMMY_USERS.push(newUser);
-  res.status(201).json({ user: newUser });
+    snaps: [],
+  });
+
+  try {
+    await newUser.save();
+  } catch {
+    const error = new HttpError('Signing up failed, please try again.', 500);
+    return next(error);
+  }
+  // set getters to true will remove underscore _id --> id
+  res.status(201).json({ user: newUser.toObject({ getters: true }) });
 };
 
-const logIn = (req, res, next) => {
+const logIn = async (req, res, next) => {
   const { email, password } = req.body;
-  const user = DUMMY_USERS.find((user) => user.email === email);
 
-  if (!user) {
-    return next(new HttpError('Could not find the user.', 404));
-  }
-  // FIXME password.trim()
-  if (password !== user.password) {
-    return next(new HttpError('Please enter the correct password.', 401));
+  let existingUser;
+
+  // FIXME error message so weird
+  try {
+    existingUser = await User.findOne({ email: email });
+  } catch {
+    const error = new HttpError(
+      'Logging in failed. Please try again later',
+      500
+    );
+    return next(error);
   }
 
-  res.status(200).json({ user });
+  if (!existingUser || existingUser.password !== password) {
+    const error = new HttpError(
+      'Invalid credentials, could not log you in.',
+      401
+    );
+    return next(error);
+  }
+
+  res.status(200).json({ message: 'Logged in!' });
 };
 
 exports.getUsers = getUsers;

@@ -1,9 +1,12 @@
 const { v4: uuidv4 } = require('uuid');
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
 
 const HttpError = require('../models/http-error');
 const getCoordsForAddress = require('../util/location');
 const Snap = require('../models/snap');
+const User = require('../models/user');
+const mongooseUniqueValidator = require('mongoose-unique-validator');
 
 let DUMMY_SNAPS = [
   {
@@ -47,7 +50,7 @@ const createSnap = async (req, res, next) => {
       new HttpError('Invalid inputs. Please enter correct information.', 422)
     );
   }
-
+  // FIXME Why do we need CREATOR from REQ.BODY here? TEMPORARY WILL FIX LATER
   const { title, description, imageUrl, address, creator } = req.body;
 
   let coordinates;
@@ -66,9 +69,36 @@ const createSnap = async (req, res, next) => {
     location: coordinates,
     creator,
   });
-  // SAVE NEW SNAP DOCUMENT
+
+  // CHECK WHETHER USER ID PROVIDED EXISTS
+  let user;
   try {
-    await createdSnap.save();
+    user = await User.findById(creator);
+  } catch {
+    const error = new HttpError('Creating snap failed, please try again.', 500);
+    return next(error);
+  }
+
+  if (!user) {
+    const error = new HttpError('Could not find user for provided id', 404);
+    return next(error);
+  }
+
+  console.log(user);
+
+  // IF USER EXISTS:
+  try {
+    // A. SESSION & TRANSACTION
+    const sess = await mongoose.startSession();
+    // B. START TRANSACTION
+    sess.startTransaction();
+    // 1) SAVE NEW SNAP DOCUMENT
+    await createdSnap.save({ session: sess });
+    // 2) SAVE SNAP TO CORRESPONDING USER *PUSH is unique mongoose-only push, only add snap id.
+    user.snaps.push(createdSnap);
+    await user.save({ session: sess });
+    // C. COMMIT TRANSACTION
+    await sess.commitTransaction();
   } catch {
     const error = new HttpError('Creating snap failed, please try again.', 500);
     return next(error);
@@ -106,8 +136,11 @@ const getSnapsByUserId = async (req, res, next) => {
   const userId = req.params.uid;
 
   let snaps;
+  // ALTERNATIVE: let userWithSnaps;
+
   try {
     snaps = await Snap.find({ creator: userId });
+    // ALTERNATIVE USING POPULATE: userWithSnaps = await User.findById(userId).populate('snaps');
   } catch {
     const error = new HttpError(
       'Something went wrong, could not find snaps for this user.',
@@ -179,7 +212,7 @@ const deleteSnap = async (req, res, next) => {
 
   let snap;
   try {
-    snap = await Snap.findById(snapId);
+    snap = await Snap.findById(snapId).populate('creator');
   } catch {
     const error = new HttpError(
       'Something went wrong, could not delete snap',
@@ -189,11 +222,16 @@ const deleteSnap = async (req, res, next) => {
   }
 
   if (!snap) {
-    return next(new HttpError('Could not find the snap.', 404));
+    return next(new HttpError('Could not find the snap for the id.', 404));
   }
 
   try {
-    await snap.remove();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await snap.remove({ session: sess });
+    snap.creator.snaps.pull(snap);
+    await snap.creator.save({ session: sess });
+    await sess.commitTransaction();
   } catch {
     const error = new HttpError(
       'Something went wrong, could not delete snap',
