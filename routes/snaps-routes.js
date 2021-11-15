@@ -6,13 +6,16 @@ const snapsController = require('../controllers/snaps-controllers');
 // CREATE A ROUTER OBJECT
 const router = Router();
 
-// ROUTE: .../:sid NOTE Get a specific snap by snap id (sid)
+// ROUTE: .../:sid
+// Get a specific snap by snap id (sid)
 router.get('/:sid', snapsController.getSnapBySnapId);
 
-// ROUTE: .../user/:uid NOTE Retrieve a list of all snaps for a given user id (uid)
+// ROUTE: .../user/:uid
+// Retrieve a list of all snaps for a given user id (uid)
 router.get('/user/:uid', snapsController.getSnapsByUserId);
 
-// ROUTE: .../ NOTE Create a new snap
+// ROUTE: .../
+// Create a new snap
 router.post(
   '/',
   [
@@ -23,14 +26,16 @@ router.post(
   snapsController.createSnap
 );
 
-// ROUTE: .../:sid NOTE Update an existing snap
+// ROUTE: .../:sid
+// Update an existing snap
 router.patch(
   '/:sid',
   [check('title').not().isEmpty(), check('description').isLength({ min: 5 })],
   snapsController.updateSnap
 );
 
-// ROUTE: .../:sid NOTE Delete an existing snap
+// ROUTE: .../:sid
+// Delete an existing snap
 router.delete('/:sid', snapsController.deleteSnap);
 
 module.exports = router;

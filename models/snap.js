@@ -1,9 +1,10 @@
 // COMMON JS
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
 
-// Node js doesn't support ES6 MODULE directly
-// import { Schema } from 'mongoose';
+// NOTE NodeJS doesn't support ES6 MODULE directly
+// import { Schema } from 'mongoose'; // NOT WORKING
 
 const snapSchema = new Schema({
   title: { type: String, required: true },

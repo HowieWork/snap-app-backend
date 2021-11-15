@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 const snapsRoutes = require('./routes/snaps-routes');
 const usersRoutes = require('./routes/users-routes');
 
-// CREATE AN EXPRESS APPLICATION
+// 1. CREATE AN EXPRESS APPLICATION
 const app = express();
 
-// MIDDLEWARES
+// 2. MIDDLEWARES
 // 1) PARSE REQUEST BODY
 app.use(express.json());
 
@@ -26,7 +26,7 @@ app.use((error, req, res, next) => {
     .json({ message: error.message || 'An unknown error occurred!' });
 });
 
-// CONNECT TO DATABASE
+// 3. CONNECT TO DATABASE
 mongoose
   .connect(
     'mongodb+srv://howie:***REMOVED***@cluster0.jlpms.mongodb.net/snaps?retryWrites=true&w=majority'
