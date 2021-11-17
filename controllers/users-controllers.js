@@ -28,8 +28,8 @@ const signUp = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(new HttpError('Please input valid information.', 422));
   }
-
-  const { name, motto, email, password, image } = req.body;
+  // FIXME ADD MOTTO / IMAGE
+  const { name, email, password } = req.body;
 
   let existingUser;
   try {
@@ -50,12 +50,13 @@ const signUp = async (req, res, next) => {
     return next(error);
   }
 
+  // FIXME UPDATE MOTTO / IMAGE
   const newUser = new User({
     name,
     email,
     password,
-    motto,
-    image,
+    motto: 'DEFAULT MOTTO',
+    image: 'SOME IMAGE URL',
     snaps: [],
   });
 
@@ -93,7 +94,12 @@ const logIn = async (req, res, next) => {
     return next(error);
   }
 
-  res.status(200).json({ message: 'Logged in!' });
+  res
+    .status(200)
+    .json({
+      message: 'Logged in!',
+      user: existingUser.toObject({ getters: true }),
+    });
 };
 
 exports.getUsers = getUsers;

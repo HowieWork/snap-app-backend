@@ -11,6 +11,17 @@ const app = express();
 // 1) PARSE REQUEST BODY
 app.use(express.json());
 
+// 2) CORS ERROR HANDLING
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST,PATCH,DELETE');
+  next();
+});
+
 // 2) ROUTES MIDDLEWARE
 app.use('/api/snaps', snapsRoutes);
 app.use('/api/users', usersRoutes);
@@ -29,7 +40,7 @@ app.use((error, req, res, next) => {
 // 3. CONNECT TO DATABASE
 mongoose
   .connect(
-    'mongodb+srv://howie:***REMOVED***@cluster0.jlpms.mongodb.net/snaps?retryWrites=true&w=majority'
+    'mongodb+srv://howie:***REMOVED***@cluster0.jlpms.mongodb.net/snap?retryWrites=true&w=majority'
   )
   .then(
     // LISTEN TO PORT

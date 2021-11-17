@@ -33,7 +33,7 @@ const createSnap = async (req, res, next) => {
   const createdSnap = new Snap({
     title,
     description,
-    imageUrl,
+    imageUrl: 'IMAGE URL PLACEHOLDER',
     address,
     location: coordinates,
     creator,
@@ -68,7 +68,7 @@ const createSnap = async (req, res, next) => {
     await user.save({ session: sess });
     // C. COMMIT TRANSACTION
     await sess.commitTransaction();
-  } catch {
+  } catch (err) {
     const error = new HttpError('Creating snap failed, please try again.', 500);
     return next(error);
   }
