@@ -11,6 +11,7 @@ const mongooseUniqueValidator = require('mongoose-unique-validator');
 // CRUD
 // 1) CREATE
 const createSnap = async (req, res, next) => {
+  console.log('CREATE STARTS');
   // VALIDATING INPUTS
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -19,8 +20,11 @@ const createSnap = async (req, res, next) => {
       new HttpError('Invalid inputs. Please enter correct information.', 422)
     );
   }
+
+  console.log(req.body);
+
   // FIXME Why do we need CREATOR from REQ.BODY here? TEMPORARY WILL FIX LATER
-  const { title, description, imageUrl, address, creator } = req.body;
+  const { title, description, address, creator } = req.body;
 
   let coordinates;
   try {
@@ -29,15 +33,19 @@ const createSnap = async (req, res, next) => {
     return next(error);
   }
 
+  console.log(req.file.path);
+
   // CREATE NEW SNAP DOCUMENT
   const createdSnap = new Snap({
     title,
     description,
-    imageUrl: 'IMAGE URL PLACEHOLDER',
+    image: req.file.path,
     address,
     location: coordinates,
     creator,
   });
+
+  console.log(createdSnap);
 
   // CHECK WHETHER USER ID PROVIDED EXISTS
   let user;
@@ -53,7 +61,7 @@ const createSnap = async (req, res, next) => {
     return next(error);
   }
 
-  console.log(user);
+  // console.log(user);
 
   // IF USER EXISTS:
   try {

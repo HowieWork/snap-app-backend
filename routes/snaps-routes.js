@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 
 const snapsController = require('../controllers/snaps-controllers');
+const fileUpload = require('../middleware/file-upload');
 
 // CREATE A ROUTER OBJECT
 const router = Router();
@@ -18,6 +19,7 @@ router.get('/user/:uid', snapsController.getSnapsByUserId);
 // Create a new snap
 router.post(
   '/',
+  fileUpload.single('image'),
   [
     check('title').not().isEmpty(),
     check('description').isLength({ min: 5 }),
