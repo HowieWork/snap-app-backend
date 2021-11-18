@@ -56,7 +56,7 @@ const signUp = async (req, res, next) => {
     email,
     password,
     motto: 'DEFAULT MOTTO',
-    image: 'SOME IMAGE URL',
+    image: req.file.path,
     snaps: [],
   });
 
@@ -94,12 +94,10 @@ const logIn = async (req, res, next) => {
     return next(error);
   }
 
-  res
-    .status(200)
-    .json({
-      message: 'Logged in!',
-      user: existingUser.toObject({ getters: true }),
-    });
+  res.status(200).json({
+    message: 'Logged in!',
+    user: existingUser.toObject({ getters: true }),
+  });
 };
 
 exports.getUsers = getUsers;

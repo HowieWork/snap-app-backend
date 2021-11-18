@@ -1,5 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 
 const snapsRoutes = require('./routes/snaps-routes');
 const usersRoutes = require('./routes/users-routes');
@@ -11,7 +13,10 @@ const app = express();
 // 1) PARSE REQUEST BODY
 app.use(express.json());
 
-// 2) CORS ERROR HANDLING
+// 2) SERVING STATIC FILES
+app.use('/uploads/images', express.static(path.join('uploads', 'images')));
+
+// 3) CORS ERROR HANDLING
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
@@ -22,12 +27,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// 2) ROUTES MIDDLEWARE
+// 4) ROUTES MIDDLEWARE
 app.use('/api/snaps', snapsRoutes);
 app.use('/api/users', usersRoutes);
 
-// 3) ERROR MIDDLEWARE
+// 5) ERROR MIDDLEWARE
 app.use((error, req, res, next) => {
+  // DELETE UNWANTED UPLOADED FILE WHEN THERE IS ERROR
+  if (req.file) {
+    fs.unlink(req.file.path, (err) => {
+      console.log(err);
+    });
+  }
   // Check if response has been sent, we won't send a response on our own
   if (res.headersSent) {
     return next(error);
