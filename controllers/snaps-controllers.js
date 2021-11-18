@@ -21,8 +21,6 @@ const createSnap = async (req, res, next) => {
     );
   }
 
-  console.log(req.body);
-
   // FIXME Why do we need CREATOR from REQ.BODY here? TEMPORARY WILL FIX LATER
   const { title, description, address, creator } = req.body;
 
@@ -33,8 +31,6 @@ const createSnap = async (req, res, next) => {
     return next(error);
   }
 
-  console.log(req.file.path);
-
   // CREATE NEW SNAP DOCUMENT
   const createdSnap = new Snap({
     title,
@@ -44,8 +40,6 @@ const createSnap = async (req, res, next) => {
     location: coordinates,
     creator,
   });
-
-  console.log(createdSnap);
 
   // CHECK WHETHER USER ID PROVIDED EXISTS
   let user;

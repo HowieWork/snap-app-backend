@@ -36,9 +36,7 @@ app.use((error, req, res, next) => {
   // DELETE UNWANTED UPLOADED FILE WHEN THERE IS ERROR
   if (req.file) {
     fs.unlink(req.file.path, (err) => {
-      console.log('ERROR?');
       console.log(err);
-      console.log('ERROR!');
     });
   }
   // Check if response has been sent, we won't send a response on our own
