@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
@@ -196,6 +197,8 @@ const deleteSnap = async (req, res, next) => {
     return next(new HttpError('Could not find the snap for the id.', 404));
   }
 
+  const imagePath = snap.image;
+
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
@@ -210,6 +213,11 @@ const deleteSnap = async (req, res, next) => {
     );
     return next(error);
   }
+
+  // DELETE IMAGE FILE
+  fs.unlink(imagePath, (err) => {
+    console.log(err);
+  });
 
   res.status(200).json({ message: 'You have successfully deleted the snap.' });
 };
