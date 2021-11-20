@@ -3,6 +3,7 @@ const { check } = require('express-validator');
 
 const snapsController = require('../controllers/snaps-controllers');
 const fileUpload = require('../middleware/file-upload');
+const checkAuth = require('../middleware/check-auth');
 
 // 1. CREATE SNAPS ROUTER OBJECT
 const router = Router();
@@ -16,9 +17,10 @@ router.get('/:sid', snapsController.getSnapBySnapId);
 // NOTE Retrieve a list of all snaps for a given user id (uid)
 router.get('/user/:uid', snapsController.getSnapsByUserId);
 
-// TODO ADD AUTH MIDDLEWARE FOR PROTECTED ROUTES BELOW *WILL PASS CREATOR INFO TO FUTURE CREATED SNAP DOCUMENT
+// 3) ADD AUTH MIDDLEWARE FOR PROTECTED ROUTES BELOW *WILL PASS CREATOR INFO TO FUTURE CREATED SNAP DOCUMENT
+router.use(checkAuth);
 
-// 3) .../
+// 4) .../
 // NOTE Create a new snap
 router.post(
   '/',
@@ -31,7 +33,7 @@ router.post(
   snapsController.createSnap
 );
 
-// 4) .../:sid
+// 5) .../:sid
 // NOTE Update an existing snap
 router.patch(
   '/:sid',
@@ -39,7 +41,7 @@ router.patch(
   snapsController.updateSnap
 );
 
-// 5) .../:sid
+// 6) .../:sid
 // NOTE Delete an existing snap
 router.delete('/:sid', snapsController.deleteSnap);
 

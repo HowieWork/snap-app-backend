@@ -8,6 +8,7 @@ const getCoordsForAddress = require('../util/location');
 const Snap = require('../models/snap');
 const User = require('../models/user');
 const mongooseUniqueValidator = require('mongoose-unique-validator');
+const { CLIENT_RENEG_LIMIT } = require('tls');
 
 // CRUD
 // 1) CREATE
@@ -137,8 +138,6 @@ const updateSnap = async (req, res, next) => {
   // VALIDATING INPUTS
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    // FIXME Delete
-    console.log(errors);
     return next(
       new HttpError('Invalid inputs. Please enter correct information.', 422)
     );
@@ -163,7 +162,12 @@ const updateSnap = async (req, res, next) => {
     return next(new HttpError('Could not find the snap.', 404));
   }
 
-  // TODO VERIFY IF USER IS UPDATING HIS OWN SNAPS
+  // VERIFY IF USER IS UPDATING HIS OWN SNAPS
+  // snap.creator is ObjectId(...); needs to be converted to a string
+  if (snap.creator.toString() !== req.userData.userId) {
+    const error = new HttpError('You are not allowed to edit this snap.', 401);
+    return next(error);
+  }
 
   snap.title = title;
   snap.description = description;
@@ -187,6 +191,7 @@ const deleteSnap = async (req, res, next) => {
 
   let snap;
   try {
+    // POPULATE CREATOR FOR ACCESS TO CREATOR.SNAPS
     snap = await Snap.findById(snapId).populate('creator');
   } catch {
     const error = new HttpError(
@@ -200,7 +205,15 @@ const deleteSnap = async (req, res, next) => {
     return next(new HttpError('Could not find the snap for the id.', 404));
   }
 
-  // TODO CHECK IF SNAP IS CREATED BY CURRENT USER
+  // CHECK IF SNAP IS CREATED BY CURRENT USER
+  // DUE TO POPULATE CREATOR EARLIER, NEED TO SPECIFY ID PROPERTY
+  if (snap.creator.id !== req.userData.userId) {
+    const error = new HttpError(
+      'You are not allowed to delete this snap.',
+      401
+    );
+    return next(error);
+  }
 
   const imagePath = snap.image;
 
@@ -211,7 +224,8 @@ const deleteSnap = async (req, res, next) => {
     snap.creator.snaps.pull(snap);
     await snap.creator.save({ session: sess });
     await sess.commitTransaction();
-  } catch {
+  } catch (err) {
+    console.log(err);
     const error = new HttpError(
       'Something went wrong, could not delete snap',
       500

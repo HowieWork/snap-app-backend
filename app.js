@@ -19,6 +19,7 @@ app.use('/uploads/images', express.static(path.join('uploads', 'images')));
 // 3) CORS ERROR HANDLING
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  // NOTE AUTHORIZATION AS A PART OF HEADERS IS ALLOWED HERE
   res.setHeader(
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept, Authorization'

@@ -19,6 +19,7 @@ router.post(
   fileUpload.single('image'),
   [
     check('name').not().isEmpty(),
+    check('motto').not().isEmpty(),
     check('email').normalizeEmail().isEmail(),
     check('password').isLength({ min: 8 }),
   ],
