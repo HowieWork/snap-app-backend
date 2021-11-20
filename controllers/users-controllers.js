@@ -28,7 +28,7 @@ const signUp = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(new HttpError('Please input valid information.', 422));
   }
-  // FIXME ADD MOTTO / IMAGE
+  // FIXME DESTRUCTURE MOTTO PROPERTY FROM REQ.BODY
   const { name, email, password } = req.body;
 
   let existingUser;
@@ -50,7 +50,9 @@ const signUp = async (req, res, next) => {
     return next(error);
   }
 
-  // FIXME UPDATE MOTTO / IMAGE
+  // TODO HASH PASSWORD BEFORE CREATING NEW USER
+
+  // FIXME UPDATE MOTTO PROPERTY TO NEW USER DUCOMENT
   const newUser = new User({
     name,
     email,
@@ -66,7 +68,11 @@ const signUp = async (req, res, next) => {
     const error = new HttpError('Signing up failed, please try again.', 500);
     return next(error);
   }
-  // set getters to true will remove underscore _id --> id
+
+  // TODO GENERATE TOKEN FOR NEWLY SIGNED UP USER
+
+  // TODO UPDATE RESPONSE
+  // NOTE set getters to true will remove underscore _id --> id
   res.status(201).json({ user: newUser.toObject({ getters: true }) });
 };
 
@@ -86,6 +92,8 @@ const logIn = async (req, res, next) => {
     return next(error);
   }
 
+  // CHECK WHETHER USER EXISTS VIA EMAIL INPUT
+  // FIXME DELETE PLAIN TEXT PASSWORD VALIDATION
   if (!existingUser || existingUser.password !== password) {
     const error = new HttpError(
       'Invalid credentials, could not log you in.',
@@ -94,6 +102,11 @@ const logIn = async (req, res, next) => {
     return next(error);
   }
 
+  // TODO CHECK INPUT PASSWORD MATCHING WITH HASHED PASSWORD
+
+  // TODO GENERATE TOKEN FOR LOGGED IN USER
+
+  // TODO UPDATE RESPONSE
   res.status(200).json({
     message: 'Logged in!',
     user: existingUser.toObject({ getters: true }),

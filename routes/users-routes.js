@@ -4,12 +4,16 @@ const { check } = require('express-validator');
 const usersController = require('../controllers/users-controllers');
 const fileUpload = require('../middleware/file-upload');
 
+// 1. CREATE USER ROUTER OBJECT
 const router = Router();
 
-// .../ NOTE Retrieve a list of users
+// 2. CREATE ROUTES
+// 1) .../
+// NOTE Retrieve a list of users
 router.get('/', usersController.getUsers);
 
-// .../signup NOTE Sign up
+// 2) .../signup
+// NOTE Sign up
 router.post(
   '/signup',
   fileUpload.single('image'),
@@ -21,7 +25,9 @@ router.post(
   usersController.signUp
 );
 
-// .../login NOTE Log in
+// 3) .../login
+// NOTE Log in
 router.post('/login', usersController.logIn);
 
+// 3. EXPORT USER ROUTER
 module.exports = router;

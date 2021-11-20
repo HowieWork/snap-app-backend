@@ -12,7 +12,6 @@ const mongooseUniqueValidator = require('mongoose-unique-validator');
 // CRUD
 // 1) CREATE
 const createSnap = async (req, res, next) => {
-  console.log('CREATE STARTS');
   // VALIDATING INPUTS
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -22,7 +21,8 @@ const createSnap = async (req, res, next) => {
     );
   }
 
-  // FIXME Why do we need CREATOR from REQ.BODY here? TEMPORARY WILL FIX LATER
+  // TODO GET CREATOR INFO FROM BACKEND INSTEAD OF FRONTEND
+  // NOTE How do we have CREATOR from REQ.BODY here? CREATOR is assigned from FE by auth context
   const { title, description, address, creator } = req.body;
 
   let coordinates;
@@ -158,9 +158,12 @@ const updateSnap = async (req, res, next) => {
     return next(error);
   }
 
+  // CHECK IF SNAP EXISTS
   if (!snap) {
     return next(new HttpError('Could not find the snap.', 404));
   }
+
+  // TODO VERIFY IF USER IS UPDATING HIS OWN SNAPS
 
   snap.title = title;
   snap.description = description;
@@ -196,6 +199,8 @@ const deleteSnap = async (req, res, next) => {
   if (!snap) {
     return next(new HttpError('Could not find the snap for the id.', 404));
   }
+
+  // TODO CHECK IF SNAP IS CREATED BY CURRENT USER
 
   const imagePath = snap.image;
 
