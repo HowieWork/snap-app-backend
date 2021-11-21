@@ -10,6 +10,8 @@ const User = require('../models/user');
 const getUsers = async (req, res, next) => {
   let users;
   try {
+    // NOTE EXCLUDE PASSWORD THROUGH PROJECTION
+    // PROJECTIN MEANS SELECTING ONLY THE NECESSARY DATA RATHER THAN SELECTING WHOLE OF THE DATA OF A DOCUMENT
     users = await User.find({}, '-password');
     //ALTERNATIVE: const users = User.find({}, 'email name');
   } catch {

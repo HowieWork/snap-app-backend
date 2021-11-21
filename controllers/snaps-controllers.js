@@ -22,9 +22,9 @@ const createSnap = async (req, res, next) => {
     );
   }
 
-  // TODO GET CREATOR INFO FROM BACKEND INSTEAD OF FRONTEND
-  // NOTE How do we have CREATOR from REQ.BODY here? CREATOR is assigned from FE by auth context
-  const { title, description, address, creator } = req.body;
+  // NOTE GET CREATOR INFO FROM BACKEND INSTEAD OF FRONTEND
+  // NOTE How do we have CREATOR from REQ.BODY here? CREATOR is assigned from FE by auth context *BETTER NOT GET THIS INFO FROM FRONT END DUE TO INVALID ID COULD BE PROVIDED
+  const { title, description, address } = req.body;
 
   let coordinates;
   try {
@@ -40,13 +40,14 @@ const createSnap = async (req, res, next) => {
     image: req.file.path,
     address,
     location: coordinates,
-    creator,
+    // GET CREATOR FROM CHECK-AUTH MIDDLEWARE INSTEAD OF REQUEST BODY
+    creator: req.userData.userId,
   });
 
   // CHECK WHETHER USER ID PROVIDED EXISTS
   let user;
   try {
-    user = await User.findById(creator);
+    user = await User.findById(req.userData.userId);
   } catch {
     const error = new HttpError('Creating snap failed, please try again.', 500);
     return next(error);
@@ -162,7 +163,7 @@ const updateSnap = async (req, res, next) => {
     return next(new HttpError('Could not find the snap.', 404));
   }
 
-  // VERIFY IF USER IS UPDATING HIS OWN SNAPS
+  // AUTHORIZATION: VERIFY IF USER IS UPDATING HIS OWN SNAPS
   // snap.creator is ObjectId(...); needs to be converted to a string
   if (snap.creator.toString() !== req.userData.userId) {
     const error = new HttpError('You are not allowed to edit this snap.', 401);
@@ -205,7 +206,7 @@ const deleteSnap = async (req, res, next) => {
     return next(new HttpError('Could not find the snap for the id.', 404));
   }
 
-  // CHECK IF SNAP IS CREATED BY CURRENT USER
+  // AUTHORIZATION: CHECK IF SNAP IS CREATED BY CURRENT USER
   // DUE TO POPULATE CREATOR EARLIER, NEED TO SPECIFY ID PROPERTY
   if (snap.creator.id !== req.userData.userId) {
     const error = new HttpError(
