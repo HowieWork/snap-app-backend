@@ -51,8 +51,9 @@ app.use((error, req, res, next) => {
 
 // 3. CONNECT TO DATABASE
 mongoose
+  // NOTE RESTART NPM AFTER CONFIGURE PROCESS.ENV USING NODEMON.JSON
   .connect(
-    'mongodb+srv://howie:***REMOVED***@cluster0.jlpms.mongodb.net/snap?retryWrites=true&w=majority'
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.jlpms.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
   )
   .then(
     // LISTEN TO PORT

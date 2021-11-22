@@ -18,7 +18,7 @@ module.exports = (req, res, next) => {
       throw new Error('Authentication failed!');
     }
     // 2. DECODE TOKEN
-    const decodedToken = jwt.verify(token, 'do_not_share_this_secret');
+    const decodedToken = jwt.verify(token, process.env.JWT_KEY);
     // 3. ADD DECODED TOKEN TO REQUEST OBJECT
     // WILL BE USEFUL TO IDENTIFY WHETHER THE SAME USER FOR FOLLOWING POST / DELETE REQUESTS
     req.userData = { userId: decodedToken.userId };
