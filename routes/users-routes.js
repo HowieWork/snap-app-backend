@@ -12,7 +12,11 @@ const router = Router();
 // NOTE Retrieve a list of users
 router.get('/', usersController.getUsers);
 
-// 2) .../signup
+// 2) .../:uid
+// NOTE Retrieve a specific user
+router.get('/:uid', usersController.getUserByUserId);
+
+// 3) .../signup
 // NOTE Sign up
 router.post(
   '/signup',
@@ -26,7 +30,7 @@ router.post(
   usersController.signUp
 );
 
-// 3) .../login
+// 4) .../login
 // NOTE Log in
 router.post('/login', usersController.logIn);
 

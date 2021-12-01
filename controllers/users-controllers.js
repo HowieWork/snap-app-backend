@@ -27,7 +27,31 @@ const getUsers = async (req, res, next) => {
   });
 };
 
-// 2. SIGN UP USER
+// 2. GET ONE USER BY USER ID
+const getUserByUserId = async (req, res, next) => {
+  const userId = req.params.uid;
+
+  let user;
+  try {
+    user = await User.findById(userId, 'name motto image');
+  } catch {
+    const error = new HttpError(
+      'Something went wrong, could not find user.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!user) {
+    return next(
+      new HttpError('Could not find the user for the provided id.', 404)
+    );
+  }
+
+  res.status(200).json({ user: user.toObject({ getters: true }) });
+};
+
+// 3. SIGN UP USER
 const signUp = async (req, res, next) => {
   // NOTE VALIDATING INPUTS
   const errors = validationResult(req);
@@ -106,7 +130,7 @@ const signUp = async (req, res, next) => {
     .json({ userId: newUser.id, email: newUser.email, token: token });
 };
 
-// 3. LOG IN USER
+// 4. LOG IN USER
 const logIn = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -173,5 +197,6 @@ const logIn = async (req, res, next) => {
 };
 
 exports.getUsers = getUsers;
+exports.getUserByUserId = getUserByUserId;
 exports.signUp = signUp;
 exports.logIn = logIn;
