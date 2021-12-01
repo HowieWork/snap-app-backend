@@ -37,6 +37,7 @@ app.use((error, req, res, next) => {
   // DELETE UNWANTED UPLOADED FILE WHEN THERE IS ERROR
   if (req.file) {
     fs.unlink(req.file.path, (err) => {
+      console.log('ERROR IN ERROR MIDDLEWARE');
       console.log(err);
     });
   }

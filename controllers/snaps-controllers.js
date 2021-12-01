@@ -48,7 +48,7 @@ const createSnap = async (req, res, next) => {
   let user;
   try {
     user = await User.findById(req.userData.userId);
-  } catch {
+  } catch (err) {
     const error = new HttpError('Creating snap failed, please try again.', 500);
     return next(error);
   }
