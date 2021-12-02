@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const { validationResult } = require('express-validator');
+const { validationResult, sanitizeBody } = require('express-validator');
 const mongoose = require('mongoose');
 
 const HttpError = require('../models/http-error');
@@ -134,6 +134,28 @@ const getSnapsByUserId = async (req, res, next) => {
     .json({ snaps: snaps.map((snap) => snap.toObject({ getters: true })) });
 };
 
+const getRandomSnap = async (req, res, next) => {
+  let snap;
+  try {
+    // NOTE RETURNED DOCUMENT IS PLAIN JAVASCRIPT OBJECTS, NOT MONGOOSE DOCUMENTS
+    snap = await Snap.aggregate([{ $sample: { size: 1 } }]);
+  } catch {
+    const error = new HttpError(
+      'Something went wrong, could not find a snap.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!snap) {
+    return next(new HttpError('Could not find the snap.', 404));
+  }
+
+  console.log(snap[0]);
+
+  res.status(200).json({ snap: snap[0] });
+};
+
 // 3) UPDATE
 const updateSnap = async (req, res, next) => {
   // VALIDATING INPUTS
@@ -245,5 +267,6 @@ const deleteSnap = async (req, res, next) => {
 exports.createSnap = createSnap;
 exports.getSnapBySnapId = getSnapBySnapId;
 exports.getSnapsByUserId = getSnapsByUserId;
+exports.getRandomSnap = getRandomSnap;
 exports.updateSnap = updateSnap;
 exports.deleteSnap = deleteSnap;

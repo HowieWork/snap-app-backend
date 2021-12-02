@@ -9,18 +9,22 @@ const checkAuth = require('../middleware/check-auth');
 const router = Router();
 
 // 2. CREATE ROUTES
-// 1) .../:sid
+// 1) .../random
+// NOTE Randomly generate a snap
+router.get('/random', snapsController.getRandomSnap);
+
+// 2) .../:sid
 // NOTE Get a specific snap by snap id (sid)
 router.get('/:sid', snapsController.getSnapBySnapId);
 
-// 2) .../user/:uid
+// 3) .../user/:uid
 // NOTE Retrieve a list of all snaps for a given user id (uid)
 router.get('/user/:uid', snapsController.getSnapsByUserId);
 
-// 3) ADD AUTH MIDDLEWARE FOR PROTECTED ROUTES BELOW *WILL PASS CREATOR INFO TO FUTURE CREATED SNAP DOCUMENT
+// 4) ADD AUTH MIDDLEWARE FOR PROTECTED ROUTES BELOW *WILL PASS CREATOR INFO TO FUTURE CREATED SNAP DOCUMENT
 router.use(checkAuth);
 
-// 4) .../
+// 5) .../
 // NOTE Create a new snap
 router.post(
   '/',
@@ -33,7 +37,7 @@ router.post(
   snapsController.createSnap
 );
 
-// 5) .../:sid
+// 6) .../:sid
 // NOTE Update an existing snap
 router.patch(
   '/:sid',
@@ -41,7 +45,7 @@ router.patch(
   snapsController.updateSnap
 );
 
-// 6) .../:sid
+// 7) .../:sid
 // NOTE Delete an existing snap
 router.delete('/:sid', snapsController.deleteSnap);
 
