@@ -159,6 +159,36 @@ const getRandomSnap = async (req, res, next) => {
   res.status(200).json({ snap: snap });
 };
 
+// TODO
+const getSnapsByKeyword = async (req, res, next) => {
+  const keyword = req.params.keyword;
+
+  let snaps;
+
+  try {
+    snaps = await Snap.find({ title: { $regex: keyword, $options: 'i' } });
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not find snaps for provided search information.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!snaps || snaps.length === 0) {
+    return next(
+      new HttpError(
+        'Could not find snaps for the provided search information.',
+        404
+      )
+    );
+  }
+
+  res
+    .status(200)
+    .json({ snaps: snaps.map((snap) => snap.toObject({ getters: true })) });
+};
+
 // 3) UPDATE
 const updateSnap = async (req, res, next) => {
   // VALIDATING INPUTS
@@ -271,5 +301,6 @@ exports.createSnap = createSnap;
 exports.getSnapBySnapId = getSnapBySnapId;
 exports.getSnapsByUserId = getSnapsByUserId;
 exports.getRandomSnap = getRandomSnap;
+exports.getSnapsByKeyword = getSnapsByKeyword;
 exports.updateSnap = updateSnap;
 exports.deleteSnap = deleteSnap;

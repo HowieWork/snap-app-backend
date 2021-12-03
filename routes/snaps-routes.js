@@ -13,18 +13,22 @@ const router = Router();
 // NOTE Randomly generate a snap
 router.get('/random', snapsController.getRandomSnap);
 
-// 2) .../:sid
+// 2) .../search/:keyword
+// NOTE Get matching snaps by keyword
+router.get('/search/:keyword', snapsController.getSnapsByKeyword);
+
+// 3) .../:sid
 // NOTE Get a specific snap by snap id (sid)
 router.get('/:sid', snapsController.getSnapBySnapId);
 
-// 3) .../user/:uid
+// 4) .../user/:uid
 // NOTE Retrieve a list of all snaps for a given user id (uid)
 router.get('/user/:uid', snapsController.getSnapsByUserId);
 
-// 4) ADD AUTH MIDDLEWARE FOR PROTECTED ROUTES BELOW *WILL PASS CREATOR INFO TO FUTURE CREATED SNAP DOCUMENT
+// 5) ADD AUTH MIDDLEWARE FOR PROTECTED ROUTES BELOW *WILL PASS CREATOR INFO TO FUTURE CREATED SNAP DOCUMENT
 router.use(checkAuth);
 
-// 5) .../
+// 6) .../
 // NOTE Create a new snap
 router.post(
   '/',
@@ -37,7 +41,7 @@ router.post(
   snapsController.createSnap
 );
 
-// 6) .../:sid
+// 7) .../:sid
 // NOTE Update an existing snap
 router.patch(
   '/:sid',
@@ -45,7 +49,7 @@ router.patch(
   snapsController.updateSnap
 );
 
-// 7) .../:sid
+// 8) .../:sid
 // NOTE Delete an existing snap
 router.delete('/:sid', snapsController.deleteSnap);
 
