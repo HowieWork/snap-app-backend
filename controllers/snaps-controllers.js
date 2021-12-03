@@ -138,7 +138,12 @@ const getRandomSnap = async (req, res, next) => {
   let snap;
   try {
     // NOTE RETURNED DOCUMENT IS PLAIN JAVASCRIPT OBJECTS, NOT MONGOOSE DOCUMENTS
-    snap = await Snap.aggregate([{ $sample: { size: 1 } }]);
+    snap = await Snap.aggregate([
+      { $sample: { size: 1 } },
+      {
+        $addFields: { id: '$_id' },
+      },
+    ]);
   } catch {
     const error = new HttpError(
       'Something went wrong, could not find a snap.',
@@ -151,9 +156,7 @@ const getRandomSnap = async (req, res, next) => {
     return next(new HttpError('Could not find the snap.', 404));
   }
 
-  console.log(snap[0]);
-
-  res.status(200).json({ snap: snap[0] });
+  res.status(200).json({ snap: snap });
 };
 
 // 3) UPDATE
