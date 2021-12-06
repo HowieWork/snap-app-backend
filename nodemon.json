@@ -4,6 +4,7 @@
     "DB_PASSWORD": "***REMOVED***",
     "DB_NAME": "snap",
     "GOOGLE_API_KEY": "***REMOVED***",
-    "JWT_KEY": "do_not_share_this_secret"
+    "JWT_KEY": "do_not_share_this_secret",
+    "PORT": 8000
   }
 }

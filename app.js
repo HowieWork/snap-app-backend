@@ -58,8 +58,10 @@ mongoose
   )
   .then(
     // LISTEN TO PORT
-    app.listen(8000, () => {
-      console.log('Server has been running successfully on port 8000.');
+    app.listen(process.env.PORT, () => {
+      console.log(
+        `Server has been running successfully on port ${process.env.PORT}`
+      );
     })
   )
   .catch((error) => console.log(error));
