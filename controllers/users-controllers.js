@@ -93,7 +93,6 @@ const signUp = async (req, res, next) => {
     return next(error);
   }
 
-  // FIXME UPDATE MOTTO PROPERTY TO NEW USER DUCOMENT
   const newUser = new User({
     name,
     email,
