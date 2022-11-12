@@ -5,6 +5,7 @@ const path = require('path');
 
 const snapsRoutes = require('./routes/snaps-routes');
 const usersRoutes = require('./routes/users-routes');
+const HttpError = require('./models/http-error');
 
 // 1. CREATE AN EXPRESS APPLICATION
 const app = express();
@@ -33,6 +34,11 @@ app.use('/api/snaps', snapsRoutes);
 app.use('/api/users', usersRoutes);
 
 // 5) ERROR MIDDLEWARE
+app.use((req, res, next) => {
+  const error = new HttpError('Could not find this route.', 404);
+  throw error;
+});
+
 app.use((error, req, res, next) => {
   // DELETE UNWANTED UPLOADED FILE WHEN THERE IS ERROR
   if (req.file) {
